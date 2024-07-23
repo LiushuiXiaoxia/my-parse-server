@@ -6,8 +6,14 @@ services:
     restart: always
     ports:
       - 27017:27017
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
     volumes:
       - ./data/mongo:/data/db
+    #   - ./mongo-init:/docker-entrypoint-initdb.d
+    #   - ./mongo-init/entrypoint.sh:/docker-entrypoint-initdb.d/entrypoint.sh
+    # entrypoint: ["bash", "/docker-entrypoint-initdb.d/entrypoint.sh"]
 
   parse-server:
     image: elestio/parse-server:${SOFTWARE_VERSION_TAG}
@@ -22,7 +28,7 @@ services:
       - PARSE_SERVER_APPLICATION_ID=${PARSE_SERVER_APPLICATION_ID}
       - PARSE_SERVER_MASTER_KEY=${MASTER_KEY}
       - PARSE_SERVER_REST_API_KEY=${REST_KEY}
-      - PARSE_SERVER_DATABASE_URI=mongodb://mongo:27017/${APP_NAME}
+      - PARSE_SERVER_DATABASE_URI=mongodb://root:example@${HOST_IP}:27017/admin
       - PARSE_SERVER_START_LIVE_QUERY_SERVER=1
       # - PARSE_SERVER_LIVE_QUERY={"classNames":["people","monitor"]}
       - PARSE_SERVER_MASTER_KEY_IPS=0.0.0.0/0
@@ -37,7 +43,7 @@ services:
     links:
       - parse-server
     environment:
-      - PARSE_DASHBOARD_SERVER_URL=${BASE_URL}:1337/parse
+      - PARSE_DASHBOARD_SERVER_URL=http://${HOST_IP}:1337/parse
       - PARSE_DASHBOARD_APP_NAME=${APP_NAME}
       - PARSE_DASHBOARD_APP_ID=${PARSE_SERVER_APPLICATION_ID}
       - PARSE_DASHBOARD_MASTER_KEY=${MASTER_KEY}
